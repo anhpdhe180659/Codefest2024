@@ -16,15 +16,14 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-//TODO : fix ngay cai uu tien nhat ruong dcm
-//TODO : fix cái nhặt 2 giáp
 public class Main {
     // Tạo danh sách để lưu trữ tối đa 2 khẩu súng
     private static final LinkedList<Weapon> playerWeapons = new LinkedList<>();
     private static final String SERVER_URL = "https://cf-server.jsclub.dev";
-    private static final String GAME_ID = "129160";
-    private static final String PLAYER_NAME = "4Rice";
-    private static final String PLAYER_KEY = "afb5797e-1c4f-4580-8119-23c708caa6ed";
+    //TODO:gameid
+    private static final String GAME_ID = "155847";
+    private static final String PLAYER_NAME = "test-chucvodich";
+    private static final String PLAYER_KEY = "hello";
 
 
     public static void main(String[] args) throws IOException {
@@ -87,15 +86,16 @@ public class Main {
 
                         if (nearestGun != null) {
                             pickUpItem(currentNode, nearestGun, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
-                        } else if (nearestThrowable != null) {
-                            pickUpItem(currentNode, nearestThrowable, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                         } else if (nearestMelee != null && hero.getInventory().getMelee().equals("HAND")) {
+                            System.out.println("Bo m nhat melee");
                             System.out.println(hero.getInventory().getMelee());
                             pickUpItem(currentNode, nearestMelee, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
+                        } else if (nearestThrowable != null && hero.getInventory().getThrowable() == null) {
+                            System.out.println("Bo m nhat throw");
+                            System.out.println(hero.getInventory().getThrowable());
+                            pickUpItem(currentNode, nearestThrowable, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                         }
-
                     } else {
-
                         System.out.println("co sung r di ban cai gi nao");
                         //check khoang cach dich va chest
                         // tim chest gan nhat
@@ -107,10 +107,9 @@ public class Main {
                         if (nearestChest != null && nearestEnemies != null) {
                             double distanceFromchest = distanceBetween2Nodes(currentNode, nearestChest);
                             double distanceFromEnimy = distanceBetween2Nodes(currentNode, nearestEnemies);
-
-                            System.out.println("Khoang cach toi dich la " + distanceFromEnimy);
-                            System.out.println("Khoang cach toi chest la " + distanceFromchest);
-                            if (distanceFromchest > distanceFromEnimy) {
+                            List<Node> allEnemies = new ArrayList<>();
+                            allEnemies.add(nearestEnemies);
+                            if (detectEnemies(currentNode, allEnemies)) {
                                 System.out.println("Gan dich hon ban dich di");
                                 // Nếu máu của người chơi dưới 50, check mau dich sap het chua
                                 if (player.getHp() <= 50) {
@@ -130,6 +129,7 @@ public class Main {
                                         if (nearestChest != null) {
                                             System.out.println("Nearesr chest 2   " + nearestChest.getX() + "/" + nearestChest.getY());
                                             openChest(currentNode, nearestChest, hero, gameMap, restrictedNodes, otherPlayersNode);
+                                            System.out.println("Bo di nhat chest o dong 131");
                                         }
                                         Node nearestHealingItem = findNearestNode(currentNode, healingItemNode, gameMap);
                                         Node nearestArmor = findNearestNode(currentNode, armorsList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
@@ -137,16 +137,20 @@ public class Main {
                                         Node nearestThrowable = findNearestNode(currentNode, throwableList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
 
                                         if (nearestHealingItem != null && (hero.getInventory().getListHealingItem().size() < 4)) {
+                                            System.out.println("Bo nhat healing o dong 139");
                                             pickUpItem(currentNode, nearestHealingItem, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                         }
                                         if (nearestArmor != null && (hero.getInventory().getListArmor().size() < 2)) {
+                                            System.out.println("Bo nhat armor o dong 143");
                                             pickUpItem(currentNode, nearestArmor, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                         }
-                                        if (nearestMelee != null && hero.getInventory().getMelee() == null) {
+                                        if (nearestMelee != null && hero.getInventory().getMelee().getId().equals("HAND")) {
+                                            System.out.println("bo nhat melee o dong 147");
                                             System.out.println(hero.getInventory().getMelee());
                                             pickUpItem(currentNode, nearestMelee, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                         }
                                         if (nearestThrowable != null && hero.getInventory().getThrowable() == null) {
+                                            System.out.println("Bo nhat throw o dong 152");
                                             System.out.println(hero.getInventory().getThrowable());
                                             pickUpItem(currentNode, nearestThrowable, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                         }
@@ -154,19 +158,59 @@ public class Main {
                                 } else {
                                     System.out.println("Mau nhieu vl ban dich di: " + player.getHp());
                                     System.out.println("DIch dang o :" + nearestEnemies.getX() + "/" + nearestEnemies.getY());
+                                    System.out.println("Tan cong dich o dong 160");
                                     attackEnemies(currentNode, nearestEnemies, restrictedNodes, otherPlayersNode, chestNode, gameMap, hero);
                                 }
                             } else {
                                 System.out.println("Dich xa qua nhat chest cai.");
                                 if (checkFull(hero)) {
-                                    System.out.println("Full do roi chien me no di !!!");
-                                    System.out.println(hero.getInventory());
-                                    attackEnemies(currentNode, nearestEnemies, restrictedNodes, otherPlayersNode, chestNode, gameMap, hero);
+                                    System.out.println("nma thoi du do roi chien me no di !!!");
+                                    System.out.println("tan cong dich o dong 168");
+                                    nearestEnemies = findNearestNode(currentNode, otherPlayersNode, gameMap);
+                                    if (nearestEnemies != null) {
+                                        System.out.println("dm m toi so roi m o : " + nearestEnemies.getX() + "/" + nearestEnemies.getY());
+                                        attackEnemies(currentNode, nearestEnemies, restrictedNodes, otherPlayersNode, chestNode, gameMap, hero);
+                                    } else {
+                                        System.out.println("Dm het cu dich roi thoi di dap da z");
+                                        nearestChest = findNearestNode(currentNode, chestNode, gameMap);
+                                        Node nearestHealingItem = findNearestNode(currentNode, healingItemNode, gameMap);
+                                        Node nearestArmor = findNearestNode(currentNode, armorsList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
+                                        Node nearestMelee = findNearestNode(currentNode, meleeList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
+                                        Node nearestThrowable = findNearestNode(currentNode, throwableList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
+                                        List<Node> itemsNode = new ArrayList<>();
+                                        if (nearestArmor != null && hero.getInventory().getListArmor().size() < 2) {
+                                            itemsNode.add(nearestArmor);
+                                        }
+
+                                        if (nearestMelee != null && hero.getInventory().getMelee().getId().equals("HAND")) {
+                                            itemsNode.add(nearestMelee);
+                                        }
+
+                                        if (nearestThrowable != null && hero.getInventory().getThrowable() == null) {
+                                            itemsNode.add(nearestThrowable);
+                                        }
+
+                                        if (nearestHealingItem != null && hero.getInventory().getListHealingItem().size() < 4) {
+                                            itemsNode.add(nearestHealingItem);
+                                        }
+                                        if (nearestChest != null) {
+                                            itemsNode.add(nearestChest);
+                                        }
+                                        Node nearestItem = findNearestNode(currentNode, itemsNode, gameMap);
+                                        if (chestNode.contains(nearestItem)) {
+                                            System.out.println("Nhat ruong gan nhat");
+                                            openChest(currentNode, nearestItem, hero, gameMap, restrictedNodes, otherPlayersNode);
+                                        } else {
+                                            System.out.println("Nhat do gan nhat");
+                                            pickUpItem(currentNode, nearestItem, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
+                                        }
+                                    }
                                 } else {
-                                    System.out.println("Chua full do di dap chest cai");
+                                    System.out.println("Chua du do di dap chest cai");
                                     nearestChest = findNearestNode(currentNode, chestNode, gameMap);
                                     if (nearestChest != null) {
                                         System.out.println("Nearesr chest 4   " + nearestChest.getX() + "/" + nearestChest.getY());
+                                        System.out.println("Tan cong dich o dong 175");
                                         openChest(currentNode, nearestChest, hero, gameMap, restrictedNodes, otherPlayersNode);
                                     }
 
@@ -174,11 +218,10 @@ public class Main {
                                     Node nearestArmor = findNearestNode(currentNode, armorsList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
                                     Node nearestMelee = findNearestNode(currentNode, meleeList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
                                     Node nearestThrowable = findNearestNode(currentNode, throwableList.stream().map((node) -> new Node(node.getX(), node.getY())).toList(), gameMap);
-
                                     if (nearestHealingItem != null && (hero.getInventory().getListHealingItem().size() < 4)) {
                                         pickUpItem(currentNode, nearestHealingItem, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                     }
-                                    if (nearestArmor != null && (hero.getInventory().getListArmor().size() < 2) && ! checkInBagOrNot((Armor) nearestArmor, hero)) {
+                                    if (nearestArmor != null && (hero.getInventory().getListArmor().size() < 2)) {
                                         pickUpItem(currentNode, nearestArmor, hero, gameMap, restrictedNodes, chestNode, otherPlayersNode);
                                     }
                                     if (!hero.getInventory().getListHealingItem().isEmpty() && player.getHp() <= 50) {
@@ -213,6 +256,22 @@ public class Main {
         hero.start(SERVER_URL);
     }
 
+    public static boolean detectEnemies(Node currentNode, List<Node> enemyNodes) throws IOException {
+        int detectionRange = 10;
+        if (enemyNodes.isEmpty()) return false;
+        for (Node enemyNode : enemyNodes) {
+            int disX = Math.abs(currentNode.getX() - enemyNode.getX());
+            int disY = Math.abs(currentNode.getY() - enemyNode.getY());
+
+
+            if (disX <= detectionRange && disY <= detectionRange) {
+                System.out.println("Phat hien dich, tan cong ngay!!");
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static Player findNearestPlayer(Node currentNode, List<Player> playerList) {
         if (playerList.isEmpty()) return null;
         double min = Double.MAX_VALUE;
@@ -234,8 +293,8 @@ public class Main {
         Weapon isUseGun = hero.getInventory().getGun();
         Weapon isUseMelee = hero.getInventory().getMelee();
         Weapon isUseThrow = hero.getInventory().getThrowable();
-        boolean pickedUpWeapon = (isUseGun != null) && (isUseThrow != null) && (!isUseMelee.getId().equals("HAND"));
-        boolean fullArmorAndHealing = hero.getInventory().getListArmor().size() == 2 && hero.getInventory().getListHealingItem().size() == 4;
+        boolean pickedUpWeapon = (isUseGun != null) || (isUseThrow != null) && (!isUseMelee.getId().equals("HAND"));
+        boolean fullArmorAndHealing = hero.getInventory().getListArmor().size() >= 1 && hero.getInventory().getListHealingItem().size() >= 2;
         return pickedUpWeapon && fullArmorAndHealing;
     }
 
@@ -252,44 +311,39 @@ public class Main {
         restrictedNodes.addAll(otherPlayerNodes);
         if ((disX == 0 && Math.abs(disY) >= 3) || (disY == 0 && Math.abs(disX) >= 3)) {
             System.out.println("Xa qua doi vu khi cai");
-            if (isUseThrow != null) {
-                weapon = isUseThrow;
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun != null) {
-                weapon = findMaxDame(hero);
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun == null) {
-                weapon = isUseMelee;
-            } else if (isUseMelee.getId().equals("HAND") && isUseGun != null) {
+            if (isUseGun != null) {
                 weapon = isUseGun;
+            } else if (isUseThrow != null) {
+                weapon = isUseThrow;
+            } else if (!isUseMelee.getId().equals("HAND")) {
+                weapon = isUseMelee;
             }
             attackRange = weapon.getRange();
         }
         if ((disX == 0 && Math.abs(disY) < 3) || (disY == 0 && Math.abs(disX) < 3)) {
             System.out.println("Gan qua doi vu khi cai");
-            if (!isUseMelee.getId().equals("HAND") && isUseGun != null) {
-                weapon = findMaxDame(hero);
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun == null) {
+            if (!isUseMelee.getId().equals("HAND")) {
                 weapon = isUseMelee;
-            } else if (isUseMelee.getId().equals("HAND") && isUseGun != null) {
+            } else if (isUseGun != null) {
                 weapon = isUseGun;
-            } else {
+            } else if (isUseThrow != null) {
                 weapon = isUseThrow;
             }
             attackRange = weapon.getRange();
         }
 
-
-        // Khi tới vị trí có thể bắn thì bắn
+        System.out.println("Vu khi dang dung " + weapon);
         if (disX == 0) {
-            if (disY > 0 && disY <= attackRange) {
-                if (weapon.getType().equals(ElementType.THROWABLE)) {
-                    if (disY > 0 && disY >= attackRange - 3 && disY <= attackRange + 3) {
-                        System.out.println("ban sang duoi dgiet dich nay");
-                        hero.throwItem("d");
-                    } else if (disY < 0 && disY <= -(attackRange - 3) && disY >= -(attackRange + 3)) {
-                        System.out.println("ban sang tren dgiet dich nay");
-                        hero.throwItem("u");
-                    }
+            if (weapon.getType().equals(ElementType.THROWABLE)) {
+                if (disY > 0 && disY >= attackRange - 3 && disY <= attackRange + 3) {
+                    System.out.println("ban sang duoi dgiet dich nay");
+                    hero.throwItem("d");
+                } else if (disY < 0 && disY <= -(attackRange - 3) && disY >= -(attackRange + 3)) {
+                    System.out.println("ban sang tren dgiet dich nay");
+                    hero.throwItem("u");
                 }
+            }
+            if (disY > 0 && disY <= attackRange) {
                 System.out.println("ban sang duoi giet dich nay");
                 if (weapon.getType().equals(ElementType.GUN))
                     hero.shoot("d");
@@ -326,7 +380,6 @@ public class Main {
                 if (weapon.getType().equals(ElementType.MELEE))
                     hero.attack("r");
             }
-
         } else {
             System.out.print("Di chuyen den ruong :");
             System.out.println(PathUtils.getShortestPath(gameMap, restrictedNodes, currentNode, enemieNode, false));
@@ -377,44 +430,39 @@ public class Main {
         restrictedNodes.addAll(chestNode);
         if ((disX == 0 && Math.abs(disY) >= 3) || (disY == 0 && Math.abs(disX) >= 3)) {
             System.out.println("Xa qua doi vu khi cai");
-            if (isUseThrow != null) {
-                weapon = isUseThrow;
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun != null) {
-                weapon = findMaxDame(hero);
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun == null) {
-                weapon = isUseMelee;
-            } else if (isUseMelee.getId().equals("HAND") && isUseGun != null) {
+            if (isUseGun != null) {
                 weapon = isUseGun;
+            } else if (isUseThrow != null) {
+                weapon = isUseThrow;
+            } else if (!isUseMelee.getId().equals("HAND")) {
+                weapon = isUseMelee;
             }
             attackRange = weapon.getRange();
         }
         if ((disX == 0 && Math.abs(disY) < 3) || (disY == 0 && Math.abs(disX) < 3)) {
             System.out.println("Gan qua doi vu khi cai");
-            if (!isUseMelee.getId().equals("HAND") && isUseGun != null) {
-                weapon = findMaxDame(hero);
-            } else if (!isUseMelee.getId().equals("HAND") && isUseGun == null) {
+            if (!isUseMelee.getId().equals("HAND")) {
                 weapon = isUseMelee;
-            } else if (isUseMelee.getId().equals("HAND") && isUseGun != null) {
+            } else if (isUseGun != null) {
                 weapon = isUseGun;
-            } else {
+            } else if (isUseThrow != null) {
                 weapon = isUseThrow;
             }
             attackRange = weapon.getRange();
         }
 
-
-        // Khi tới vị trí có thể bắn thì bắn
+        System.out.println("Vu khi dang dung " + weapon);
         if (disX == 0) {
-            if (disY > 0 && disY <= attackRange) {
-                if (weapon.getType().equals(ElementType.THROWABLE)) {
-                    if (disY > 0 && disY >= attackRange - 3 && disY <= attackRange + 3) {
-                        System.out.println("ban sang duoi dgiet dich nay");
-                        hero.throwItem("d");
-                    } else if (disY < 0 && disY <= -(attackRange - 3) && disY >= -(attackRange + 3)) {
-                        System.out.println("ban sang tren dgiet dich nay");
-                        hero.throwItem("u");
-                    }
+            if (weapon.getType().equals(ElementType.THROWABLE)) {
+                if (disY > 0 && disY >= attackRange - 3 && disY <= attackRange + 3) {
+                    System.out.println("ban sang duoi dgiet dich nay");
+                    hero.throwItem("d");
+                } else if (disY < 0 && disY <= -(attackRange - 3) && disY >= -(attackRange + 3)) {
+                    System.out.println("ban sang tren dgiet dich nay");
+                    hero.throwItem("u");
                 }
+            }
+            if (disY > 0 && disY <= attackRange) {
                 System.out.println("ban sang duoi giet dich nay");
                 if (weapon.getType().equals(ElementType.GUN))
                     hero.shoot("d");
@@ -454,6 +502,8 @@ public class Main {
 
         } else {
             Node target = new Node(enemieNode.getX(), enemieNode.getY());
+
+            System.out.println("Duong toi thang dich : "+PathUtils.getShortestPath(gameMap, restrictedNodes, currentNode, target, false));
             hero.move(PathUtils.getShortestPath(gameMap, restrictedNodes, currentNode, target, false));
         }
 
@@ -491,13 +541,4 @@ public class Main {
         }
     }
 
-    public static Weapon findMaxDame(Hero hero) {
-        Weapon isUseGun = hero.getInventory().getGun();
-        Weapon isUseMelee = hero.getInventory().getMelee();
-        return isUseGun.getDamage() < isUseMelee.getDamage() ? isUseMelee : isUseGun;
-    }
-
-    public static boolean checkInBagOrNot(Armor armor, Hero hero) {
-        return hero.getInventory().getListArmor().contains(armor);
-    }
 }
